@@ -37,7 +37,7 @@ class FSAPI {
 
 		$params['sig'] = $this->sign($params, $client);
 
-		$query = $this->api_url . '?' . http_build_query($params);
+		$url = $this->api_url . '?' . http_build_query($params);
 
 		$context = stream_context_create(
 			array(
@@ -48,7 +48,11 @@ class FSAPI {
 					)
 			));
 
-		$response = json_decode(file_get_contents($query, false, $context), true);
+		$response = json_decode(@file_get_contents($url, false, $context), true);
+
+		if (is_null($response)) {
+			throw new \Exception('FS server did not respond on time', 500);
+		}
 
 		if (isset($response['error'])) {
 			throw new \Exception("{$response['error']['error_msg']}", @$response['error']['error_code'] * 1E3 + @$response['error']['error_subcode']);
@@ -113,7 +117,11 @@ class FSAPI {
 				)
 			));
 
-		$response = json_decode(file_get_contents($url, false, $context), true);
+		$response = json_decode(@file_get_contents($url, false, $context), true);
+
+		if (is_null($response)) {
+			throw new \Exception('FS server did not respond on time', 500);
+		}
 
 		if (isset($response['error'])) {
 			throw new \Exception("{$response['error']['error_msg']}", $response['error']['error_code']);
